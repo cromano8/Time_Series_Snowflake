@@ -7,12 +7,12 @@ Multiple ways to perform time series analysis in Snowflake
 
     ```plaintext
     SNOWFLAKE_ACCOUNT = abc123.us-east-1
-    SNOWFLAKE_USER = username
-    SNOWFLAKE_PASSWORD = yourpassword
-    SNOWFLAKE_ROLE = sysadmin
-    SNOWFLAKE_WAREHOUSE = compute_wh
-    SNOWFLAKE_DATABASE = snowpark
-    SNOWFLAKE_SCHEMA = titanic
+    SNOWFLAKE_USER = <username>
+    SNOWFLAKE_PASSWORD = <yourpassword>
+    SNOWFLAKE_AUTHENTICATOR = externalbrowser  
+    SNOWFLAKE_ROLE = <role>
+    SNOWFLAKE_WAREHOUSE = <warehouse>
+    SNOWFLAKE_DATABASE = <database>
     ```
 
 2. Utilize the `environment.yml` file to set up your Python environment for the demo:
