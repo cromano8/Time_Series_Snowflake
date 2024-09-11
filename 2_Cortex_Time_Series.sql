@@ -1,31 +1,30 @@
--- Only 10 stores to test 
-CREATE OR REPLACE table STORE_TRAFFIC.TIME_SERIES.TRAIN AS SELECT STORE_ID, DATE::TIMESTAMP_NTZ AS DATE, TRAFFIC
-  FROM STORE_TRAFFIC.TIME_SERIES.traffic
+select * from MOCKSERIES.DAILY_TS_5000_PARTITIONS_STARTING_2021
+order by order_timestamp desc;
+
+
+CREATE OR REPLACE table train AS 
+SELECT STORE_ID, feature_1, feature_2, ORDER_TIMESTAMP::TIMESTAMP_NTZ AS DATE, TARGET
+  FROM CROMANO.MOCKSERIES.DAILY_TS_5000_PARTITIONS_STARTING_2021
   where Date <= current_date()-15
-  and store_id < 11;
+  and store_id < 5;
 
-CREATE or replace SNOWFLAKE.ML.FORECAST multi_model_univariate(INPUT_DATA => SYSTEM$REFERENCE('TABLE', 'train'),
-                                    SERIES_COLNAME => 'STORE_ID',
-                                    TIMESTAMP_COLNAME => 'DATE',
-                                    TARGET_COLNAME => 'TRAFFIC'
-                                   );
+select * from train
+order by date desc;  
 
-CALL multi_model_univariate!FORECAST(FORECASTING_PERIODS => 28);
-                                   
-create or replace table cortex_forecast as
-SELECT series as store_id, ts::date as date, forecast, lower_bound, upper_bound
-  FROM TABLE(RESULT_SCAN(-1));
+CREATE or replace SNOWFLAKE.ML.FORECAST store_forecast(INPUT_DATA => SYSTEM$REFERENCE('TABLE', 'train'),
+                                SERIES_COLNAME => 'STORE_ID',
+                                TIMESTAMP_COLNAME => 'DATE',
+                                TARGET_COLNAME => 'TARGET'
+                               );
 
-select * from cortex_forecast;
+CREATE OR REPLACE table test AS 
+SELECT STORE_ID, feature_1, feature_2, ORDER_TIMESTAMP::TIMESTAMP_NTZ AS DATE, TARGET
+  FROM CROMANO.MOCKSERIES.DAILY_TS_5000_PARTITIONS_STARTING_2021
+  where Date > current_date()-15
+  and store_id < 5;
+           
+CALL store_forecast!FORECAST(input_data => TABLE(test),SERIES_COLNAME => 'STORE_ID',TIMESTAMP_COLNAME=> 'date');
 
--- Create final table with actuals and forecast
-create or replace table cortex_actual_vs_forecast as
-select a.date as date, a.store_id, forecast, traffic as actual
-from cortex_forecast a
-left join traffic b
-on a.store_id = b.store_id
-and a.date = b.date;
+CALL store_forecast!show_evaluation_metrics();
 
--- view it for one store in Snowsight
-select * from cortex_actual_vs_forecast
-where store_id = 1;
+CALL store_forecast!EXPLAIN_FEATURE_IMPORTANCE();
