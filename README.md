@@ -3,7 +3,7 @@ Multiple ways to perform time series analysis in Snowflake
 
 ## Configuration Setup
 
-1. Create a `.env` file and populate it with your account details, or use SnowCLI to store credentials :
+1. Create a `.env` file and populate it with your account details, or use SnowCLI to store credentials.  You do not need BOTH password and authenticator.  Authenticator is there for people who have SSO:
 
     ```plaintext
     SNOWFLAKE_ACCOUNT = abc123.us-east-1
